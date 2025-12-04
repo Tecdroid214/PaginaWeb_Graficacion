@@ -31,11 +31,21 @@ https://github.com/Tecdroid214/PaginaWeb_Graficacion.git
 C:\Users\david\OneDrive\Desktop\PaginaWeb_Graficacion
 ````
 
-4- Run the project
+3- website
 ````
-![imagen](https://github.com/user-attachments/assets/995cb720-e4c9-4f7f-bab1-1a447a098c6f)
+https://tecdroid214.github.io/PaginaWeb_Graficacion/
+````
 
-````
+
+4- Run the project
+![imagen](https://github.com/user-attachments/assets/eddd933f-913f-4e0d-985b-5d8d4ad0063a)
+
+
+
+
+
+
+
 
 
 
