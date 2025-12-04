@@ -30,10 +30,9 @@
     </nav>
 
     <div id="canvas-container"></div>
-    <div id="instructions">🖱️ Clic en el <b>Robot</b> (Música) o en la <b>Laptop</b> (Video)</div>
+    <div id="instructions">🖱️ Clic en el <b>Robot</b> (Música) o en la <b>Laptop</b> (Encender/Apagar)</div>
 
-    <!-- === RECURSOS OCULTOS (Video para la textura) === -->
-    <!-- Pon aquí tu video real. 'playsinline' es vital para móviles -->
+    <!-- === VIDEO OCULTO === -->
     <video id="videoLaptop" loop playsinline style="display:none" crossorigin="anonymous">
         <source src="assets/Imagenes_y_videos/laptop/VideoPantalla.mp4" type="video/mp4">
     </video>
@@ -52,7 +51,7 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        // --- 1. ESCENA BÁSICA ---
+        // --- ESCENA ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202020);
@@ -63,143 +62,112 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.outputColorSpace = THREE.SRGBColorSpace; // Colores correctos
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         container.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.target.set(0, 1, 0);
 
-        // Iluminación
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-        scene.add(ambientLight);
+        // --- LUCES ---
+        scene.add(new THREE.AmbientLight(0xffffff, 1.5));
         const dirLight = new THREE.DirectionalLight(0xffffff, 2);
         dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
 
-
-        // --- 2. PREPARAR EL VIDEO (TEXTURA) ---
+        // --- VIDEO ---
         const videoElement = document.getElementById('videoLaptop');
         const videoTexture = new THREE.VideoTexture(videoElement);
-        videoTexture.flipY = false; // Importante para GLTF
+        videoTexture.flipY = false;
         videoTexture.colorSpace = THREE.SRGBColorSpace;
-        
-        // Material especial que brilla con el video
-        const pantallaMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
 
+        const pantallaOnMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+        const pantallaOffMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-        // --- 3. PREPARAR EL AUDIO ---
+        let pantallaLaptopMesh = null;
+        let laptopEncendida = false;
+
+        // --- AUDIO ---
         const listener = new THREE.AudioListener();
         camera.add(listener);
         const sound = new THREE.Audio(listener);
         const audioLoader = new THREE.AudioLoader();
-        
-        // URL de prueba (Cámbiala por 'assets/sonidos/musica.mp3')
-        const musicUrl = 'assets/Imagenes_y_videos/sonido/“Golden” Official Lyric Video KPop Demon Hunters Sony Animation.mp3'; 
-        
-        audioLoader.load(musicUrl, function(buffer) {
+
+        audioLoader.load('assets/Imagenes_y_videos/sonido/musica.mp3', function(buffer) {
             sound.setBuffer(buffer);
             sound.setLoop(true);
             sound.setVolume(0.5);
         });
 
-
-        // --- 4. CARGAR MODELO Y BUSCAR OBJETOS ---
+        // --- CARGAR MODELO ---
         const loader = new GLTFLoader();
         let loadedModel;
 
-        // ¡ATENCIÓN! Aquí debes poner el nombre de tu archivo .glb que contiene TODO (robot, laptop, mesa)
-        loader.load('assets/archivo_blender/setup_gamer_25_3.glb', function (gltf) {
+        loader.load('assets/archivo_blender/setup_gamer_25_3.glb', function(gltf) {
             loadedModel = gltf.scene;
-            
-            // RECORRER EL MODELO PARA ENCONTRAR LAS COSAS
+
             loadedModel.traverse((child) => {
                 if (child.isMesh) {
-                    // A. Configurar la Pantalla de la Laptop
-                    // Asegúrate de que en Blender el material se llame 'Material_PantallaLaptop'
-                    // o el objeto se llame 'Objeto_PantallaLaptop'
-                    if (child.name.includes('Laptop') || child.material.name.includes('Pantalla')) {
-                        child.material = pantallaMaterial; // Le pegamos el video
-                        child.name = "Interactuable_Laptop"; // Le ponemos una etiqueta para el clic
+
+                    // Detectar la pantalla de la laptop
+                    if (child.name.includes("Laptop") || child.material.name.includes("Pantalla")) {
+                        pantallaLaptopMesh = child;
+                        child.material = pantallaOffMaterial; // INICIA APAGADA
+                        child.name = "Interactuable_Laptop";
                     }
 
-                    // B. Configurar el Robot
-                    if (child.name.includes('Robot') || child.name.includes('Cubo')) {
-                        child.name = "Interactuable_Robot"; // Etiqueta para el clic
+                    if (child.name.includes("Robot") || child.name.includes("Cubo")) {
+                        child.name = "Interactuable_Robot";
                     }
                 }
             });
 
             scene.add(loadedModel);
-
-        }, undefined, function (error) {
-            console.error('Error cargando modelo:', error);
-            // Cubo de emergencia por si falla la carga
-            const cube = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color:'red'}));
-            cube.name = "Interactuable_Robot"; 
-            scene.add(cube);
         });
 
-
-        // --- 5. SISTEMA DE CLICS (INTERACTIVIDAD) ---
+        // --- CLICK ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
         window.addEventListener('click', (event) => {
-            // 1. Calcular posición del mouse
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            // 2. Disparar rayo
             raycaster.setFromCamera(mouse, camera);
-            
-            // 3. Ver qué tocamos (intersectObjects busca en toda la escena)
             const intersects = raycaster.intersectObjects(scene.children, true);
 
             if (intersects.length > 0) {
-                // Obtenemos el primer objeto tocado
-                // A veces tocamos una parte interna, así que buscamos el nombre hacia arriba si es necesario
-                const objetoTocado = intersects[0].object;
-                console.log("Tocaste:", objetoTocado.name); // Para depurar en consola (F12)
+                const obj = intersects[0].object;
 
-                // --- ACCIÓN: ROBOT (SONIDO) ---
-                if (objetoTocado.name.includes('Robot')) {
-                    toggleAudio();
-                }
-
-                // --- ACCIÓN: LAPTOP (VIDEO) ---
-                if (objetoTocado.name.includes('Laptop')) {
-                    toggleVideo();
-                }
+                if (obj.name.includes('Robot')) toggleAudio();
+                if (obj.name.includes('Laptop')) toggleVideo();
             }
         });
 
-        // Función Sonido
+        // --- AUDIO ---
         function toggleAudio() {
-            if (listener.context.state === 'suspended') listener.context.resume();
-            
-            if (sound.isPlaying) {
-                sound.pause();
-                console.log("Audio Pausado");
-            } else {
-                sound.play();
-                console.log("Audio Reproduciendo");
-            }
+            if (listener.context.state === "suspended") listener.context.resume();
+
+            if (sound.isPlaying) sound.pause();
+            else sound.play();
         }
 
-        // Función Video
+        // --- LAPTOP ENCENDER / APAGAR ---
         function toggleVideo() {
-            if (videoElement.paused) {
+            if (!pantallaLaptopMesh) return;
+
+            laptopEncendida = !laptopEncendida;
+
+            if (laptopEncendida) {
+                pantallaLaptopMesh.material = pantallaOnMaterial;
                 videoElement.play();
-                console.log("Video Play");
             } else {
+                pantallaLaptopMesh.material = pantallaOffMaterial;
                 videoElement.pause();
-                console.log("Video Pause");
             }
         }
 
-
-        // --- 6. BUCLE DE ANIMACIÓN ---
+        // --- LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
@@ -207,13 +175,12 @@
         }
         animate();
 
-        // Responsive
+        // --- RESPONSIVE ---
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
     </script>
 </body>
 </html>
