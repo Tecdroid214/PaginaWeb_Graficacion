@@ -579,3 +579,143 @@ body {
 
 
 
+/* --- 1. VARIABLES Y COLORES --- */
+:root {
+    --purple-gradient: linear-gradient(135deg, #2e003e 0%, #6a0dad 100%);
+    --white: #ffffff;
+    --text-white: #ffffff;
+    --text-dark: #333333;
+    --btn-color: #7b1fa2;
+    --skew-deg: -10deg;
+    --anim-speed: 0.6s;
+    --page-transition-speed: 0.8s;
+}
+
+/* --- 2. GENERAL --- */
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Bloqueo global */
+    background-color: #000; 
+}
+
+/* --- ARREGLO DE SCROLL: REFERENCIAS --- */
+body.page-referencias {
+    height: 100vh;
+    overflow-y: auto !important; 
+    overflow-x: hidden;
+    background-color: #f4f4f4;
+    background-image: linear-gradient(180deg, #2e003e 0%, #4a0072 400px, #f4f4f4 400px);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+}
+
+/* --- ARREGLO DE SCROLL: OBJETIVO (¡NUEVO!) --- */
+body.page-objetivo {
+    height: 100vh;
+    overflow-y: auto !important; /* Libera el scroll vertical */
+    overflow-x: hidden;
+    background-color: #f4f4f4;
+    /* Fondo con degradado radial suave */
+    background-image: radial-gradient(circle at 10% 20%, #4a0072 0%, #2e003e 90%);
+    background-size: 100% 450px; /* Solo la parte de arriba */
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+}
+
+/* --- 3. BARRA DE NAVEGACIÓN --- */
+.navbar {
+    position: fixed; top: 0; left: 0; width: 100%;
+    padding: 1rem 3rem;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 1000;
+    box-sizing: border-box;
+    background: rgba(15, 0, 30, 0.9); 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+.navbar .logo { color: #fff; font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; }
+.nav-links { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
+.nav-links a { text-decoration: none; color: #ccc; font-weight: 500; transition: 0.3s; font-size: 1rem; cursor: pointer; }
+.nav-links a:hover { color: #fff; text-shadow: 0 0 10px rgba(138, 43, 226, 0.8); }
+.nav-links a.active { color: #fff; font-weight: bold; border-bottom: 2px solid var(--btn-color); }
+
+/* --- 4. CONTENEDOR PRINCIPAL (Página Única / Index) --- */
+#main-container { width: 100%; height: 100vh; position: relative; overflow: hidden; }
+.page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-x: hidden; transition: transform var(--page-transition-speed) cubic-bezier(0.77, 0, 0.175, 1); background-color: #f4f4f4; }
+.active-page { transform: translateX(0%); z-index: 2; }
+.right-page { transform: translateX(100%); z-index: 1; }
+.left-page { transform: translateX(-100%); z-index: 1; }
+
+/* --- 5. ESTILOS DE PORTADA (#portada) --- */
+/* (Mantén tus estilos de portada aquí...) */
+/* ... */
+
+/* --- 6. ESTILOS DE REFERENCIAS Y OBJETIVO --- */
+/* Contenedores generales */
+.objetivo-container, .references-container {
+    max-width: 1000px;
+    margin: 120px auto 50px auto; /* Margen superior para librar la navbar */
+    padding: 20px;
+}
+
+.page-title {
+    text-align: center; color: white; font-size: 3rem; margin-bottom: 3rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* --- ESTILOS ESPECÍFICOS DE OBJETIVO --- */
+
+/* Perfil */
+.profile-section { margin-bottom: 50px; }
+.profile-card {
+    background: white; border-radius: 20px; padding: 40px;
+    display: flex; align-items: center; gap: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.profile-image img {
+    width: 200px; height: 200px; border-radius: 50%; object-fit: cover;
+    border: 5px solid var(--btn-color); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.profile-info h2 { color: #333; font-size: 2.2rem; margin-bottom: 5px; }
+.profile-info .highlight { color: var(--btn-color); }
+.profile-info .role { color: #666; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; }
+.profile-info .bio { line-height: 1.6; color: #555; font-size: 1.1rem; }
+
+/* Habilidades */
+.skills-section h2, .projects-section h2, .contact-section h2 {
+    color: var(--btn-color); font-size: 2rem; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;
+}
+.skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.skill-card {
+    background: white; padding: 25px; border-radius: 15px; text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;
+}
+.skill-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(106, 13, 173, 0.1); }
+.skill-icon { font-size: 2.5rem; color: var(--btn-color); margin-bottom: 15px; }
+.progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 4px; margin-top: 15px; overflow: hidden; }
+.progress { height: 100%; background: var(--purple-gradient); border-radius: 4px; }
+
+/* Proyectos */
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.project-card {
+    background: white; padding: 25px; border-radius: 15px;
+    border-left: 5px solid var(--btn-color); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.tag { display: inline-block; background: #f0f0f0; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #555; margin-top: 10px; font-weight: bold; margin-right: 5px; }
+
+/* Contacto */
+.contact-section { text-align: center; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 50px; }
+.social-links { display: flex; justify-content: center; gap: 20px; margin-top: 25px; flex-wrap: wrap; }
+.social-btn { padding: 10px 25px; border-radius: 50px; text-decoration: none; color: white; font-weight: bold; transition: transform 0.3s; display: flex; align-items: center; gap: 10px; }
+.social-btn:hover { transform: scale(1.1); }
+.github { background: #333; }
+.linkedin { background: #0077b5; }
+.instagram { background: #e1306c; }
+.email { background: var(--btn-color); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .profile-card { flex-direction: column; text-align: center; }
+}
+
