@@ -705,7 +705,20 @@ body.page-objetivo {
 .tag { display: inline-block; background: #f0f0f0; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #555; margin-top: 10px; font-weight: bold; margin-right: 5px; }
 
 /* Contacto */
-.contact-section { text-align: center; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 50px; }
+/* Solo modificamos esta parte para separarlo de arriba */
+.contact-section { 
+    text-align: center; 
+    background: white; 
+    padding: 40px; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    margin-bottom: 50px;
+    
+    /* ESTA ES LA LÍNEA NUEVA QUE LOS SEPARA */
+    margin-top: 80px; 
+}
+
+/* El resto se queda IGUAL para no afectar tus botones */
 .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 25px; flex-wrap: wrap; }
 .social-btn { padding: 10px 25px; border-radius: 50px; text-decoration: none; color: white; font-weight: bold; transition: transform 0.3s; display: flex; align-items: center; gap: 10px; }
 .social-btn:hover { transform: scale(1.1); }
@@ -713,6 +726,7 @@ body.page-objetivo {
 .linkedin { background: #0077b5; }
 .instagram { background: #e1306c; }
 .email { background: var(--btn-color); }
+
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
