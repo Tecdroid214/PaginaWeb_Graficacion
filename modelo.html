@@ -14,6 +14,7 @@
             color: white; font-family: 'Segoe UI', sans-serif; background: rgba(0, 0, 0, 0.6);
             padding: 12px 25px; border-radius: 30px; pointer-events: none; user-select: none;
             backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
         }
     </style>
 </head>
@@ -30,9 +31,10 @@
     </nav>
 
     <div id="canvas-container"></div>
-    <div id="instructions">🖱️ Clic en el <b>Robot</b> (Música) o en la <b>Laptop</b> (Encender/Apagar)</div>
+    <div id="instructions">
+        🖱️ Clic en: <b>Robot</b> (Música) | <b>Laptop</b> (Video) | <b>Tablet</b> (Fondo)
+    </div>
 
-    <!-- === VIDEO OCULTO === -->
     <video id="videoLaptop" loop playsinline style="display:none" crossorigin="anonymous">
         <source src="assets/Imagenes_y_videos/laptop/animacion.mp4" type="video/mp4">
     </video>
@@ -69,23 +71,44 @@
         controls.enableDamping = true;
         controls.target.set(0, 1, 0);
 
+        // --- RELOJ PARA ANIMACIONES ---
+        const clock = new THREE.Clock();
+        let mixer; 
+
         // --- LUCES ---
         scene.add(new THREE.AmbientLight(0xffffff, 1.5));
         const dirLight = new THREE.DirectionalLight(0xffffff, 2);
         dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
 
-        // --- VIDEO ---
+        // ==========================================
+        // --- MATERIALES INTERACTIVOS (PANTALLAS) ---
+        // ==========================================
+
+        // 1. MATERIAL APAGADO (Para Laptop y Tablet)
+        const pantallaOffMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+        // 2. CONFIGURACIÓN LAPTOP (VIDEO)
         const videoElement = document.getElementById('videoLaptop');
         const videoTexture = new THREE.VideoTexture(videoElement);
         videoTexture.flipY = false;
         videoTexture.colorSpace = THREE.SRGBColorSpace;
-
-        const pantallaOnMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
-        const pantallaOffMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-
+        const pantallaLaptopOnMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+        
         let pantallaLaptopMesh = null;
         let laptopEncendida = false;
+
+        // 3. CONFIGURACIÓN TABLET (IMAGEN ESTÁTICA) - ¡NUEVO!
+        const textureLoader = new THREE.TextureLoader();
+        // colocar imagen aqui
+        const tabletTexture = textureLoader.load('assets/Imagenes_y_videos/Tablet/lunaFondo.jpg'); 
+        tabletTexture.flipY = false; // Importante para modelos GLTF
+        tabletTexture.colorSpace = THREE.SRGBColorSpace;
+        const pantallaTabletOnMaterial = new THREE.MeshBasicMaterial({ map: tabletTexture });
+
+        let pantallaTabletMesh = null;
+        let tabletEncendida = false;
+
 
         // --- AUDIO ---
         const listener = new THREE.AudioListener();
@@ -106,16 +129,32 @@
         loader.load('assets/archivo_blender/setup_gamer_25_3.glb', function(gltf) {
             loadedModel = gltf.scene;
 
+            // ANIMACIONES
+            if (gltf.animations && gltf.animations.length > 0) {
+                mixer = new THREE.AnimationMixer(loadedModel);
+                gltf.animations.forEach((clip) => {
+                    mixer.clipAction(clip).play();
+                });
+            }
+
             loadedModel.traverse((child) => {
                 if (child.isMesh) {
 
-                    // Detectar la pantalla de la laptop
+                    // A. DETECTAR LAPTOP
                     if (child.name.includes("Laptop") || child.material.name.includes("Pantalla")) {
                         pantallaLaptopMesh = child;
-                        child.material = pantallaOffMaterial; // INICIA APAGADA
+                        child.material = pantallaOffMaterial; 
                         child.name = "Interactuable_Laptop";
                     }
 
+                    // B. DETECTAR TABLET (Según tu imagen de Blender: PantallaTablet)
+                    if (child.name === "PantallaTablet") {
+                        pantallaTabletMesh = child;
+                        child.material = pantallaOffMaterial; // Inicia apagada (negra)
+                        child.name = "Interactuable_Tablet"; // Nombre clave para el click
+                    }
+
+                    // C. DETECTAR ROBOT
                     if (child.name.includes("Robot") || child.name.includes("Cubo")) {
                         child.name = "Interactuable_Robot";
                     }
@@ -125,7 +164,7 @@
             scene.add(loadedModel);
         });
 
-        // --- CLICK ---
+        // --- CLICK (RAYCASTER) ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -139,27 +178,27 @@
             if (intersects.length > 0) {
                 const obj = intersects[0].object;
 
+                // Lógica de interacción según el nombre
                 if (obj.name.includes('Robot')) toggleAudio();
                 if (obj.name.includes('Laptop')) toggleVideo();
+                if (obj.name.includes('Tablet')) toggleTablet(); // ¡Nuevo Click!
             }
         });
 
-        // --- AUDIO ---
+        // --- FUNCIONES DE INTERACCIÓN ---
+
         function toggleAudio() {
             if (listener.context.state === "suspended") listener.context.resume();
-
             if (sound.isPlaying) sound.pause();
             else sound.play();
         }
 
-        // --- LAPTOP ENCENDER / APAGAR ---
         function toggleVideo() {
             if (!pantallaLaptopMesh) return;
-
             laptopEncendida = !laptopEncendida;
 
             if (laptopEncendida) {
-                pantallaLaptopMesh.material = pantallaOnMaterial;
+                pantallaLaptopMesh.material = pantallaLaptopOnMaterial;
                 videoElement.play();
             } else {
                 pantallaLaptopMesh.material = pantallaOffMaterial;
@@ -167,9 +206,24 @@
             }
         }
 
+        function toggleTablet() {
+            if (!pantallaTabletMesh) return;
+            tabletEncendida = !tabletEncendida;
+
+            if (tabletEncendida) {
+                pantallaTabletMesh.material = pantallaTabletOnMaterial; // Muestra la imagen
+            } else {
+                pantallaTabletMesh.material = pantallaOffMaterial; // Se pone negra
+            }
+        }
+
         // --- LOOP ---
         function animate() {
             requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+
             controls.update();
             renderer.render(scene, camera);
         }
