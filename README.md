@@ -41,7 +41,7 @@ https://tecdroid214.github.io/PaginaWeb_Graficacion/
 ![imagen](https://github.com/user-attachments/assets/eddd933f-913f-4e0d-985b-5d8d4ad0063a)
 
 
-# 🎴3D Models in Blender
+# 🎴Image section of 3D Blender Modeling
 
 ### - 🧸 _Teddy_
 
